@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         cript = new Cript();
         super.onCreate(savedInstanceState);
+        Log.i(TAG, "OnCreate: Neue Instanz der App Geöffnet");
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
@@ -128,132 +129,143 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //-------------------------handler del messaggio ricevuto----------------------------------------
+    //-------------------------Handler der die Nachrichten Empfängt----------------------------------------
     Handler handler=new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
-            switch (msg.what){
-                //Austauschen der 2. Nachricht
+            switch (msg.what) {
+
+
                 case MESSAGE_READ:
+                    //Nachrichten Empfangen
                     byte[] readBuff = (byte[]) msg.obj;
-                    String tempMsg = new String (readBuff,0,msg.arg1);//Hier wird string empfangen
-                    WifiP2pConfig config = new WifiP2pConfig();
-
-
-
-                    if(tempMsg.length()>16 &&tempMsg.substring(0,4).equals("MAC:") ){ //aufteilen in Adresse + nachricht
-                        currentMacConnect = tempMsg.substring(4,21);
-                        currentNameConnect = tempMsg.substring(7,tempMsg.lastIndexOf(">")-1);
-                        try {
-                            cript.setHisKey(tempMsg.substring( tempMsg.lastIndexOf(">")+1));
-                        } catch (NoSuchAlgorithmException e) {
-                            e.printStackTrace();
-                        } catch (InvalidKeySpecException e) {
-                            e.printStackTrace();
-                        }
-
-                        System.out.println(currentMacConnect); //zuordnen eines empfangsfeldes
-                        setContentView(R.layout.chat);
-                        chatWork();
-                        try{
-                            updateChatMex();
-                        }catch (Exception e){}
-                        //Temporär
-
-
-
-                    }else{
-
-                        //Empfangen
-                        String mex =cript.decript(tempMsg);//entschlüsseln
-                        Log.i(TAG, "Diese Daten wurden empfangen "+mex);
-                        //Toast.makeText(getApplicationContext(),mex,Toast.LENGTH_SHORT).show(); //anzeige befel empfang
-                        if(mex.equals("All_start")) {
-                            Log.i(TAG, "All start angekommen");
-                            Toast.makeText(getApplicationContext(), "mir san da", Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(MainActivity.this, GameActivity.class);
-                            startActivity(intent);
-                        }else if(mex.equals("errore")){
-
-                        }else if(mex.equals("Letsegooo")){
-                            IsReady=true;
-                            Log.i(TAG, "Handler empfangen: Letsegooo");
-
-
-
-                        }else{
-                            String temp;
-                            temp=mex.substring(0,6);
-                                Log.i(TAG, "Substring "+temp);
-                            if(temp.equals("GtwMsg")) {
-                                Log.i(TAG, "Dies ist die nachricht s nach dem filter X " + mex);
-                                int ziel_handy_pos=Integer.parseInt(mex.substring(6,mex.lastIndexOf("*")));
-
-                                if(ziel_handy_pos<1){
-                                    GameView.circle.Point_Scored('r');
-                                }
-                                if(ziel_handy_pos>GameView.amountPlayers){
-                                    GameView.circle.Point_Scored('l');
-                                }
-                                if(ziel_handy_pos==GameView.thisScreen.HandyPosition){
-                                    GameView.circle.CurrentHandy = GameView.thisScreen.HandyPosition;
-                                    //GameView.circle.xpos=Float.parseFloat(mex.substring(mex.lastIndexOf("*")+1,mex.lastIndexOf(">")));
-                                    GameView.circle.ypos=Float.parseFloat(mex.substring(mex.lastIndexOf(">")+1,mex.lastIndexOf("<"))) * GameView.thisScreen.adjustedHeight;
-                                    GameView.circle.standardxspeed=Float.parseFloat(mex.substring(mex.lastIndexOf("<")+1,mex.lastIndexOf("#")));
-                                    GameView.circle.standardyspeed=Float.parseFloat(mex.substring(mex.lastIndexOf("#")+1,mex.length()));
-                                    if(GameView.circle.xspeed < 0) GameView.circle.xpos = GameView.thisScreen.width;
-                                    else GameView.circle.xpos = 0;
-
-                                }else{
-                                    MainActivity.sendReceive.write(tempMsg.getBytes());
-                                }
-
-                            }if(temp.equals("NBAMsg")){
-                                int Positionee =Integer.parseInt(mex.substring(6,mex.length()));
-                                if(GameView.thisScreen.HandyPosition == Positionee){
-                                    GameView.circle.CurrentHandy = GameView.thisScreen.HandyPosition;
-                                    GameView.circle.xpos = 450;
-                                    GameView.circle.ypos = 900;
-                                    GameView.circle.standardyspeed = 3;
-                                    GameView.circle.standardradius = 10;
-                                    if(GameView.thisScreen.HandyPosition == 1) GameView.circle.standardxspeed = 6;
-                                    if(GameView.thisScreen.HandyPosition == GameView.amountPlayers) GameView.circle.standardxspeed = -6;
-                                }
-                            }
-
-                            if(temp.equals("Sa_Dim")){
-                                Log.i(TAG, "Dies ist die nachricht s nach dem filter Y"+mex);
-                                String Sa_width=mex.substring(6,mex.lastIndexOf(">"));
-                                String Sa_height=mex.substring(mex.lastIndexOf(">")+1,mex.lastIndexOf("#"));
-                                String Sa_density=mex.substring(mex.lastIndexOf("#")+1,mex.lastIndexOf("<"));
-                                String Sa_position=mex.substring(mex.lastIndexOf("<")+1,mex.length());
-                                Log.i(TAG, "Sa_width "+Sa_width);
-                                Log.i(TAG, "Sa_height "+Sa_height);
-                                Log.i(TAG, "Sa_density "+Sa_density);
-                                Log.i(TAG, "Sa_position " +Sa_position);
-                                GameView.screen[Integer.parseInt(Sa_position)].width = Float.parseFloat(Sa_width);
-                                GameView.screen[Integer.parseInt(Sa_position)].height = Float.parseFloat(Sa_height);
-                                GameView.screen[Integer.parseInt(Sa_position)].density = Float.parseFloat(Sa_density);
-                                GameView.screen[Integer.parseInt(Sa_position)].HandyPosition = Integer.parseInt(Sa_position);
-                            }
-                        }
-
-
-
-
-                        myDb.insertMessage(currentMacConnect,mex);
-                        //updateChatMex();//Das können wir quasi raus nehmen, ist nur darstellung
-                        //Toast.makeText(getApplicationContext(),tempMsg,Toast.LENGTH_SHORT).show(); //anzeige befel empfang
-
-                    }
-
-                    //Toast.makeText(getApplicationContext(),tempMsg,Toast.LENGTH_SHORT).show();
-                   // myDb.insertMessage();
-                    break;
+                    String tempMsg = new String(readBuff, 0, msg.arg1);
+                    Log.i(TAG, "Handler_Message_Read: Nachricht Empfangen: " + tempMsg);
+                    filterservice(tempMsg);
             }
             return true;
         }
     });
+
+    public void filterservice(String nachricht) {
+
+        Log.i(TAG, "Filterservice: Neue Nachricht Empfangen: " + nachricht);
+
+        //Filterservice für globale übergabe parameter:
+
+        //Filter für All Start
+        if (nachricht.equals("All_start")) {
+            Log.i(TAG, "Filterservice_Parameter: All_start wurde empfangen");
+            Intent intent = new Intent(MainActivity.this, GameActivity.class);
+            startActivity(intent);
+        }
+        //Filter für errore
+        else if (nachricht.equals("errore")) {
+            Log.i(TAG, "Filterservice_Parameter: errore wurde empfangen");
+
+        }
+        //Filter für Letsegooo
+        else if (nachricht.equals("Letsegooo")) {
+            Log.i(TAG, "Filterservice_Parameter: Letsegooo wurde empfangen");
+            IsReady = true;
+
+        }
+
+        //Filter ob was auch immer
+        else if(nachricht.equals("hallole")){
+            Log.i(TAG, "Filterservice_Parameter: hallole aus dem komischen filter kahm an");
+            WifiP2pConfig config = new WifiP2pConfig();
+            System.out.println(currentMacConnect); //zuordnen eines empfangsfeldes
+            setContentView(R.layout.chat);
+            chatWork();
+            try{
+                updateChatMex();
+            }catch (Exception e){}
+        }
+        //Filter für Comand Parameter
+        else{
+
+            //Bilden eines Teilstrings der den Command enthält
+            //Alle Commands müssen 6 zeichen enthalten
+            String command;
+            command=nachricht.substring(0,6);
+            Log.i(TAG, "Filterservice: Command wurde gebildet: "+command);
+
+            //Filterservice für alle commands
+
+            //Filterservice für GtwMsg
+            if(command.equals("GtwMsg")) {
+                Log.i(TAG, "Filterservice_Command: GateWayMassage empfangen");
+
+                //Ermitteln der Zielhandyposition
+                int ziel_handy_pos=Integer.parseInt(nachricht.substring(6,nachricht.lastIndexOf("*")));
+
+                if(ziel_handy_pos<1){
+                    GameView.circle.Point_Scored('r');
+                }
+                if(ziel_handy_pos>GameView.amountPlayers){
+                    GameView.circle.Point_Scored('l');
+                }
+                if(ziel_handy_pos==GameView.thisScreen.HandyPosition){
+                    GameView.circle.CurrentHandy = GameView.thisScreen.HandyPosition;
+                    //GameView.circle.xpos=Float.parseFloat(nachricht.substring(nachricht.lastIndexOf("*")+1,nachricht.lastIndexOf(">")));
+                    GameView.circle.ypos=Float.parseFloat(nachricht.substring(nachricht.lastIndexOf(">")+1,nachricht.lastIndexOf("<"))) * GameView.thisScreen.adjustedHeight;
+                    GameView.circle.standardxspeed=Float.parseFloat(nachricht.substring(nachricht.lastIndexOf("<")+1,nachricht.lastIndexOf("#")));
+                    GameView.circle.standardyspeed=Float.parseFloat(nachricht.substring(nachricht.lastIndexOf("#")+1,nachricht.length()));
+                    if(GameView.circle.standardxspeed < 0) GameView.circle.xpos = GameView.thisScreen.width;
+                    else GameView.circle.xpos = 0;
+
+                }else{
+                    sendToSendRecive(nachricht);
+                }
+
+                //Filterservice für NewBallMessage
+            }if(command.equals("NBAMsg")){
+                Log.i(TAG, "Filterservice_Command: New Ball Massage empfangen");
+                int Positionee =Integer.parseInt(nachricht.substring(6,nachricht.length()));
+                if(GameView.thisScreen.HandyPosition == Positionee){
+                    GameView.circle.CurrentHandy = GameView.thisScreen.HandyPosition;
+                    GameView.circle.xpos = 450;
+                    GameView.circle.ypos = 900;
+                    GameView.circle.standardyspeed = 3;
+                    GameView.circle.standardradius = 10;
+                    if(GameView.thisScreen.HandyPosition == 1) GameView.circle.standardxspeed = 6;
+                    if(GameView.thisScreen.HandyPosition == GameView.amountPlayers) GameView.circle.standardxspeed = -6;
+                }
+            }
+
+            //Filterservice SoftwareAndroid_Dimension
+            if(command.equals("Sa_Dim")){
+                Log.i(TAG, "Filterservice_Command: SoftwareAndroid_Dimension empfangen");
+
+                String Sa_width=nachricht.substring(6,nachricht.lastIndexOf(">"));
+                String Sa_height=nachricht.substring(nachricht.lastIndexOf(">")+1,nachricht.lastIndexOf("#"));
+                String Sa_density=nachricht.substring(nachricht.lastIndexOf("#")+1,nachricht.lastIndexOf("<"));
+                String Sa_position=nachricht.substring(nachricht.lastIndexOf("<")+1,nachricht.length());
+                Log.i(TAG, "Filterservice_Command: SoftwareAndroid_Dimension: Sa_width "+Sa_width);
+                Log.i(TAG, "Filterservice_Command: SoftwareAndroid_Dimension: Sa_height "+Sa_height);
+                Log.i(TAG, "Filterservice_Command: SoftwareAndroid_Dimension: Sa_density "+Sa_density);
+                Log.i(TAG, "Filterservice_Command: SoftwareAndroid_Dimension: Sa_position " +Sa_position);
+                GameView.screen[Integer.parseInt(Sa_position) - 1].width = Float.parseFloat(Sa_width);
+                GameView.screen[Integer.parseInt(Sa_position) - 1].height = Float.parseFloat(Sa_height);
+                GameView.screen[Integer.parseInt(Sa_position) - 1].density = Float.parseFloat(Sa_density);
+                GameView.screen[Integer.parseInt(Sa_position) - 1].HandyPosition = Integer.parseInt(Sa_position);
+            }
+        }
+    }
+
+    public static void sendToSendRecive(String input){
+        Log.i(TAG, "SendRecive: Sende Nachricht: "+input);
+        String temp =new String();
+        sendReceive.write(input.getBytes());
+        temp=null;
+        System.gc();
+
+
+    }
+
+
+
 
     private void exqListener() {
         btnOnOff.setOnClickListener(new OnClickListener() {
@@ -417,7 +429,7 @@ public class MainActivity extends AppCompatActivity {
                 String msg = writeMsg.getText().toString();
                // Toast.makeText(getApplicationContext(),msg.getBytes().toString(),Toast.LENGTH_SHORT).show();
                 try{
-                    sendReceive.write(msg.getBytes());
+                    sendToSendRecive(msg.getBytes());
                 }catch (Exception e){
                     Toast.makeText(getApplicationContext(),"invio fallito",Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
@@ -498,7 +510,7 @@ public class MainActivity extends AppCompatActivity {
         btnCripto = findViewById(R.id.cripto);
         btnOnOff = findViewById(R.id.onOff);
         btnDiscover = findViewById(R.id.discover);
-     //   btnSend = findViewById(R.id.sendButton);
+        //   btnSend = findViewById(R.id.sendButton);
         buttonplay = findViewById(R.id.playButton);
         listView =  findViewById(R.id.peerListView);
         buttonserver = findViewById(R.id.server);
@@ -506,9 +518,9 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-     //   read_msg_box =  findViewById(R.id.readMsg);
+        //   read_msg_box =  findViewById(R.id.readMsg);
         connectionsStatus= findViewById(R.id.connectionStatus);
-       // writeMsg = findViewById(R.id.writeMsg);
+        // writeMsg = findViewById(R.id.writeMsg);
         wifimanager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChanel = mManager.initialize(this,getMainLooper(),null);
@@ -538,8 +550,9 @@ public class MainActivity extends AppCompatActivity {
                 try{
 
 //SENDE BEFEL... HIER...JA GENAU HIER
-                    String msgcript = cript.encript(msg); //Verschlüsselt ie nachricht
-                    sendReceive.write(msgcript.getBytes()); //senden
+                    // String msgcript = cript.encript(msg); //Verschlüsselt ie nachricht
+                    String msgcript=msg;
+                    sendToSendRecive(msgcript); //senden
                     mexText.setText("");
                     myDb.insertMessage(currentMacConnect,"me: "+msg);
                     updateChatMex();
@@ -561,15 +574,16 @@ public class MainActivity extends AppCompatActivity {
 
 
                 String msg="All_start";
-                String msgcript = cript.encript(msg); //Verschlüsselt ie nachricht
-               sendReceive.write(msgcript.getBytes()); //senden
+                // String msgcript = cript.encript(msg); //Verschlüsselt ie nachricht
+                String msgcript=msg;
+                sendToSendRecive(msgcript); //senden
 
                 Intent intent = new Intent(MainActivity.this,GameActivity.class);
                 startActivity(intent);
 
             }
         });
-        }
+    }
 
 
     WifiP2pManager.PeerListListener peerListListener= new WifiP2pManager.PeerListListener() {
@@ -599,7 +613,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 };
 
-                 listView.setAdapter(adapter);
+                listView.setAdapter(adapter);
                 if(HasClicktJoin)joinList.setAdapter(adapter);
             }
             if (peers.size()==0){
@@ -615,7 +629,7 @@ public class MainActivity extends AppCompatActivity {
 
     //---------------------------------------LISTENER DELLA CONNESSIONE----------------------------------------------------------
     WifiP2pManager.ConnectionInfoListener connectionInfoListener = new WifiP2pManager.ConnectionInfoListener() {
-         @Override
+        @Override
         public void onConnectionInfoAvailable(WifiP2pInfo wifiP2pInfo) {
 
             final InetAddress groupOwnwerAndres =wifiP2pInfo.groupOwnerAddress;
@@ -633,7 +647,7 @@ public class MainActivity extends AppCompatActivity {
 
             }else if (wifiP2pInfo.groupFormed){
                 IsHost=false;
-               // sendReceive = new SendReceive(MESSAGE_READ,handler);
+                // sendReceive = new SendReceive(MESSAGE_READ,handler);
 
                 connectionsStatus.setText("client");
 
@@ -642,27 +656,27 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(),"client",Toast.LENGTH_SHORT).show();
             }
 
-             Handler handler = new Handler();
+            Handler handler = new Handler();
 
+//Dieser kauz hatt alles zerstört glaube ich
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    try{
+                        Log.i(TAG, "Temporare nachricht... glaube diser handler hatte alles zerstoert");
 
-             handler.postDelayed(new Runnable() {
-                 public void run() {
-                     try{
+                        String snd = "hallole";
+                        sendToSendRecive(snd);
+                    }catch (Exception e){
+                        Log.i(TAG, "Temporare nachricht... glaube diser handler hatte alles zerstoert_FEHLER");
+                        Toast.makeText(getApplicationContext(),"invio fallito",Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
+                }
+            }, 5000);
 
-                         String myDn = mReceiver.myDevice.deviceName;
-                         String myDm = mReceiver.myDevice.deviceAddress;
-                         String snd = "MAC:"+myDm+" "+myDn+" >"+ Base64.encodeToString(cript.pubkey.getEncoded(),0);
-                         sendReceive.write(snd.getBytes());
-                     }catch (Exception e){
-                         Toast.makeText(getApplicationContext(),"invio fallito",Toast.LENGTH_SHORT).show();
-                         e.printStackTrace();
-                     }
-                 }
-             }, 5000);
-
-           // setContentView(R.layout.chat);
-          //  chatWork();
-         }
+            // setContentView(R.layout.chat);
+            //  chatWork();
+        }
     };
 
 
@@ -671,6 +685,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         registerReceiver(mReceiver,mIntentFilter);
+
     }
     @Override
     protected void onPause() {
@@ -741,7 +756,7 @@ public class MainActivity extends AppCompatActivity {
     public void sendingereinger(){
         String msg="hallo";
         String msgcript = cript.encript(msg); //Verschlüsselt ie nachricht
-        sendReceive.write(msgcript.getBytes()); //senden
+        sendToSendRecive(msgcript); //senden
     }
 
     @Override

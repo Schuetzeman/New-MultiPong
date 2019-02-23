@@ -55,7 +55,7 @@ public class SendReceive extends Thread{
     }
 
     public void write(final byte[] bytes) {
-        Log.i(TAG, "write:");
+
         new Thread(new Runnable(){
             @Override
             public void run() {

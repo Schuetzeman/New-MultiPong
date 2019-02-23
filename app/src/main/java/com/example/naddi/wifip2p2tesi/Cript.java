@@ -30,16 +30,20 @@ public class Cript{
 
 
     public void setHisKey(String hispub) throws NoSuchAlgorithmException, InvalidKeySpecException {
+
+        /*
         byte [] pub= Base64.decode(hispub,Base64.DEFAULT);
         X509EncodedKeySpec spec = new X509EncodedKeySpec(pub);
         java.security.KeyFactory fact = java.security.KeyFactory.getInstance("EC");
         this.hispub = fact.generatePublic(spec);
         System.out.println(this.hispub.toString());
+*/
     }
 
 
 
     public Cript() {
+/*
         try {
             ECGenParameterSpec ecParamSpec = new ECGenParameterSpec("secp224k1");
             KeyPairGenerator kpg = KeyPairGenerator.getInstance("EC","SC");// KeyPairGenerator.getInstance("ECDH","SC");
@@ -53,12 +57,16 @@ public class Cript{
         {
             e.printStackTrace();
         }
-
+*/
     }
 
 
 
     public  String decript(String mex){
+
+
+        return mex;
+/*
         try{
             byte[] mexDec = Base64.decode(mex.getBytes(),0);
             Cipher ecies = Cipher.getInstance("ECIESwithAES-CBC");
@@ -69,10 +77,12 @@ public class Cript{
             e.printStackTrace();
             return "errore";
         }
-
+*/
     }
 
     public String encript(String mex){
+        return mex;
+/*
         try {
             Cipher ecies = Cipher.getInstance("ECIESwithAES-CBC");
             ecies.init(Cipher.ENCRYPT_MODE, hispub);
@@ -85,7 +95,7 @@ public class Cript{
             e.printStackTrace();
             return "errore";
         }
-
+*/
     }
 
 

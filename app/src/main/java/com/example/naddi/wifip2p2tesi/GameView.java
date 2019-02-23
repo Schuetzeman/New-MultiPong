@@ -13,7 +13,7 @@ import android.widget.Toast;
 
 import com.example.naddi.wifip2p2tesi.MainActivity;
 
-
+import java.util.logging.Handler;
 
 
 public class GameView extends View  {
@@ -30,10 +30,13 @@ public class GameView extends View  {
     Paint paint;
     private static final String TAG ="DEBUGINGER";
     boolean firstime = true;
+    int dummy = 0;
+
 
 
     public GameView(Context context) {
         super(context);
+
 
         paint = new Paint();
         paint.setColor(Color.WHITE);
@@ -43,9 +46,18 @@ public class GameView extends View  {
         thisScreen = new Screen();
         thisScreen.getOwnHandyTask();
         thisScreen.getOwnHandyDimensions();
-        thisScreen.getOwnHandyPosition();
         thisScreen.getAmountPlayers();
+        thisScreen.getOwnHandyPosition();
         thisScreen.adjustedHeight = thisScreen.height;
+
+        String msgcript;
+
+        /*
+        msgcript = ("Bliblablublubblub"); //Verschlüsselt ie nachricht
+        //thisScreen.HandyPosition--;
+        MainActivity.sendToSendRecive(msgcript); //senden
+*/
+
 
         if(thisScreen.HandyTask == 'h'){
             screen = new Screen[amountPlayers];
@@ -53,18 +65,24 @@ public class GameView extends View  {
         }
 
         if(thisScreen.HandyTask == 'j'){
-            Log.i(TAG, "Sa_Dim wird gesendet");
-            thisScreen.HandyPosition++;
-            String msgcript = MainActivity.cript.encript("Sa_Dim" + String.valueOf(thisScreen.width) + ">" + String.valueOf(thisScreen.height) + "#" + String.valueOf(thisScreen.density) + "<" + String.valueOf(thisScreen.HandyPosition)); //Verschlüsselt ie nachricht
-            thisScreen.HandyPosition--;
-            MainActivity.sendReceive.write(msgcript.getBytes()); //senden
+            //thisScreen.HandyPosition++;MainActivity.cript.encript
+            msgcript = ("Sa_Dim" + String.valueOf(thisScreen.width) + ">" + String.valueOf(thisScreen.height) + "#" + String.valueOf(thisScreen.density) + "<" + String.valueOf(thisScreen.HandyPosition)); //Verschlüsselt ie nachricht
+            Log.i(TAG, "GameView: Sa_Dim wird gesendet: " + msgcript);
+            //thisScreen.HandyPosition--;
+            MainActivity.sendToSendRecive(msgcript); //senden
         }
 
-        Log.i(TAG, "Das Objekt Circle ist Erschinen");
+        Log.i(TAG, "GameView: Objekt Circle initialisiert");
+
+
+
+        for(int i = 0; i < 900000; i++) dummy++;
+
+
 
         circle = new Circle();
         circle.xpos = 450;
-        circle.ypos = 900;
+        circle.ypos = 400;
         circle.standardxspeed = 6;
         circle.standardyspeed = 3;
         circle.standardradius = 10;
@@ -94,10 +112,10 @@ public class GameView extends View  {
 
         circle.CurrentHandy = 1;
 
+ //Verschlüsselt ie nachricht
+        MainActivity.sendToSendRecive("Letsegooo"); //senden
 
-        String msgcript = MainActivity.cript.encript("Letsegooo"); //Verschlüsselt ie nachricht
-        MainActivity.sendReceive.write(msgcript.getBytes()); //senden
-
+        for(int i = 0; i < 900000; i++) dummy--;
 
     }
 
@@ -128,14 +146,20 @@ public class GameView extends View  {
            /*
             if (xpos > screen.width - radius || xpos < radius)
                 xspeed *= -1;*/
-            if (ypos > screen[CurrentHandy - 1].height - radius - screen[CurrentHandy - 1].offset || ypos < radius + screen[CurrentHandy - 1].offset) standardyspeed *= -1;
+           //unwichtig
+            //if (ypos > thisScreen.height - radius - thisScreen.offset || ypos < radius + thisScreen.offset) standardyspeed *= -1;
 
-            if(xpos >= screen[CurrentHandy - 1].width && standardxspeed > 0 && CurrentHandy != amountPlayers) {
+            if(ypos > thisScreen.height - radius - thisScreen.offset && standardyspeed > 0) standardyspeed *= -1;
+
+            if(ypos < radius + thisScreen.offset && standardyspeed < 0 ) standardyspeed *= -1;
+
+
+            if(xpos >= thisScreen.width && standardxspeed > 0 && CurrentHandy != amountPlayers) {
                 CurrentHandy++;
                 xpos = 0;
             }
 
-            if(xpos >= screen[CurrentHandy - 1].width + radius && standardxspeed > 0 && CurrentHandy == amountPlayers){
+            if(xpos >= thisScreen.width + radius && standardxspeed > 0 && CurrentHandy == amountPlayers){
                 scoreLeft++;
                 xpos = 450;
                 ypos = 900;
@@ -146,7 +170,7 @@ public class GameView extends View  {
 
             if(xpos < 0 && standardxspeed < 0 && CurrentHandy != 1){
                 CurrentHandy--;
-                xpos = screen[CurrentHandy].width;
+                xpos = thisScreen.width;
             }
 
             if(xpos < - radius && standardxspeed < 0 && CurrentHandy == 1){
@@ -157,15 +181,15 @@ public class GameView extends View  {
                 standardyspeed = 3;
             }
 
-            if (screen[CurrentHandy - 1].HandyPosition == 1){
+            if (thisScreen.HandyPosition == 1){
                 //--------------------------------------
-                if(xpos >= screen[CurrentHandy - 1].width - radius && standardxspeed > 0) standardxspeed *= -1;
+                //if(xpos >= screen[CurrentHandy - 1].width - radius && standardxspeed > 0) standardxspeed *= -1;
                 //--------------------------------------
                 if(xpos - radius <= paddle.xpos + paddle.width && xpos - radius >= paddle.xpos - paddle.width && ypos >= paddle.ypos - paddle.length/2 && ypos <= paddle.ypos + paddle.length/2 && standardxspeed < 0) standardxspeed *= -1;
             }
-            if (screen[CurrentHandy - 1].HandyPosition == amountPlayers){
+            if (thisScreen.HandyPosition == amountPlayers){
                 //--------------------------------------
-                if(xpos <= radius) standardxspeed *= -1;
+                //if(xpos <= radius) standardxspeed *= -1;
                 //--------------------------------------
                 if(xpos + radius >= paddle.xpos - paddle.width && xpos + radius <= paddle.xpos + paddle.width && ypos >= paddle.ypos - paddle.length && ypos <= paddle.ypos + paddle.length && standardxspeed > 0) standardxspeed *= -1;
             }
@@ -176,24 +200,23 @@ public class GameView extends View  {
 
         public void getPosX(float wert){
             xpos = wert;
-            Log.i(TAG, "Es wurde empfangen: "+String.valueOf(wert));
+            Log.i(TAG, "Circle: getPosX hat Empfangen: "+String.valueOf(wert));
         }
 
         public void getPosY(float wert){
             ypos = wert;
-            Log.i(TAG, "Es wurde empfangen: "+String.valueOf(wert));
+            Log.i(TAG, "Circle: getPosY hat Empfangen: "+String.valueOf(wert));
         }
 
         public void Point_Scored(char input){
             if(input == 'l'){
                 scoreLeft++;
-                String msgcript = MainActivity.cript.encript("NBAMsg" + String.valueOf(circle.CurrentHandy)); //Verschlüsselt ie nachricht
-                MainActivity.sendReceive.write(msgcript.getBytes());
+                MainActivity.sendToSendRecive("NBAMsg" + String.valueOf(circle.CurrentHandy));
             }
             if(input == 'r'){
                 scoreRight++;
-                String msgcript = MainActivity.cript.encript("EoPMsg" + String.valueOf(circle.CurrentHandy)); //Verschlüsselt ie nachricht
-                MainActivity.sendReceive.write(msgcript.getBytes());
+                 //Verschlüsselt ie nachricht
+                MainActivity.sendToSendRecive("EoPMsg" + String.valueOf(circle.CurrentHandy));
             }
         }
 
@@ -269,18 +292,6 @@ public class GameView extends View  {
         float length;
         float width;
         float adjust;
-
-        public void sendYPos(){
-
-        }
-
-        public void getLeftYPos(){
-
-        }
-
-        public void getRightYPos(){
-
-        }
     }
 
 
@@ -290,14 +301,14 @@ public class GameView extends View  {
 
         if(thisScreen.HandyTask == 'h' && firstime == true){
             firstime = false;
-            Log.i(TAG, "Draw first time use wurde aufgerufen ");
+            Log.i(TAG, "Draw: hat den Initialisirungslauf erreicht ");
             screen[thisScreen.HandyPosition - 1].width = thisScreen.width;
             screen[thisScreen.HandyPosition - 1].height = thisScreen.height;
             screen[thisScreen.HandyPosition - 1].density = thisScreen.density;
             screen[thisScreen.HandyPosition - 1].HandyPosition = thisScreen.HandyPosition;
             screen[thisScreen.HandyPosition - 1].HandyTask = 'h';
 
-            saveScreen = new Screen();
+            //saveScreen = new Screen();
 
             /*
             for(int i = 0; i < amountPlayers - 1; i++){
@@ -330,15 +341,7 @@ public class GameView extends View  {
                 //_-------------------------------------
             }
             thisScreen.offset = screen[thisScreen.HandyPosition - 1].offset;
-
-
-
         }
-
-
-
-
-
 
 
 
@@ -352,9 +355,9 @@ public class GameView extends View  {
 
 
             //muss wieder eingefuegt werden:!!!!
-            //if(thisScreen.HandyPosition == circle.CurrentHandy)canvas.drawCircle(circle.xpos, circle.ypos, circle.radius, paint);
+            if(thisScreen.HandyPosition == circle.CurrentHandy)canvas.drawCircle(circle.xpos, circle.ypos, circle.radius, paint);
             //----------------------------------------
-            canvas.drawCircle(circle.xpos, circle.ypos, circle.radius, paint);
+            //canvas.drawCircle(circle.xpos, circle.ypos, circle.radius, paint);
             //----------------------------------------
             if((thisScreen.HandyPosition == 1 || thisScreen.HandyPosition == amountPlayers) && thisScreen.HandyTask == 'j') canvas.drawRect(paddle.xpos - paddle.width/2, paddle.ypos - paddle.length/2,paddle.xpos + paddle.width/2, paddle.ypos + paddle.length/2, paint);
             if(thisScreen.HandyPosition == 1 && thisScreen.HandyTask == 'h') canvas.drawRect(paddle.xpos - paddle.width/2, paddle.ypos - paddle.length/2,paddle.xpos + paddle.width/2, paddle.ypos + paddle.length/2, paint);
@@ -367,29 +370,28 @@ public class GameView extends View  {
                 canvas.drawCircle(circle.xpos, circle.ypos, circle.radius, paint);
                 circle.checkHitbox();
                 circle.move();
-                if(circle.xpos < 0){
-                    String msgcript = MainActivity.cript.encript("GtwMsg" + String.valueOf(thisScreen.HandyPosition - 1) + "*" + String.valueOf(circle.xpos) + ">" + String.valueOf(circle.ypos/thisScreen.adjustedHeight) + "<" + String.valueOf(circle.standardxspeed) + "#" + String.valueOf(circle.standardyspeed)); //Verschlüsselt ie nachricht
-                    MainActivity.sendReceive.write(msgcript.getBytes());
+                Log.i("Dauerrutine: ", "Draw: Auf Handy ist Ball (zeichnen move usw.)" + circle.xpos + " " + circle.ypos);
+                if(circle.xpos < 0 + 30 && circle.standardxspeed < 0){
+                //Verschlüsselt ie nachricht
+                    Log.i(TAG, "Draw: Gateway Message nach links: "+ String.valueOf(thisScreen.HandyPosition - 1) + "*" + String.valueOf(circle.xpos) + ">" + String.valueOf(circle.ypos/thisScreen.adjustedHeight) + "<" + String.valueOf(circle.standardxspeed) + "#" + String.valueOf(circle.standardyspeed));
+                    MainActivity.sendToSendRecive("GtwMsg" + String.valueOf(thisScreen.HandyPosition - 1) + "*" + String.valueOf(circle.xpos) + ">" + String.valueOf(circle.ypos/thisScreen.adjustedHeight) + "<" + String.valueOf(circle.standardxspeed) + "#" + String.valueOf(circle.standardyspeed));
                     circle.CurrentHandy--;
                 }
-                if(circle.xpos > thisScreen.width){
-                    String msgcript = MainActivity.cript.encript("GtwMsg" + String.valueOf(thisScreen.HandyPosition + 1) + "*" + String.valueOf(circle.xpos) + ">" + String.valueOf(circle.ypos/thisScreen.adjustedHeight) + "<" + String.valueOf(circle.standardxspeed) + "#" + String.valueOf(circle.standardyspeed)); //Verschlüsselt ie nachricht
-                    MainActivity.sendReceive.write(msgcript.getBytes());
+                if(circle.xpos > thisScreen.width - 30 && circle.standardxspeed > 0){
+                     //Verschlüsselt ie nachricht
+                    Log.i(TAG, "Draw: Gateway Message nach rechts: "+ String.valueOf(thisScreen.HandyPosition + 1) + "*" + String.valueOf(circle.xpos) + ">" + String.valueOf(circle.ypos/thisScreen.adjustedHeight) + "<" + String.valueOf(circle.standardxspeed) + "#" + String.valueOf(circle.standardyspeed));
+                    MainActivity.sendToSendRecive("GtwMsg" + String.valueOf(thisScreen.HandyPosition + 1) + "*" + String.valueOf(circle.xpos) + ">" + String.valueOf(circle.ypos/thisScreen.adjustedHeight) + "<" + String.valueOf(circle.standardxspeed) + "#" + String.valueOf(circle.standardyspeed));
                     circle.CurrentHandy++;
                 }
             }
-
-
         }
-
-
 
         invalidate();
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event){
-        if((thisScreen.HandyPosition == 1 || thisScreen.HandyPosition == amountPlayers) && thisScreen.HandyTask == 'j' && event.getY() < paddle.ypos + paddle.length/2 + paddle.adjust && event.getY() > paddle.ypos - paddle.length/2 - paddle.adjust) {
+        if((thisScreen.HandyPosition == 1 || thisScreen.HandyPosition == amountPlayers) && event.getY() < paddle.ypos + paddle.length/2 + paddle.adjust && event.getY() > paddle.ypos - paddle.length/2 - paddle.adjust) {
             paddle.ypos = event.getY();
             if(paddle.ypos < thisScreen.offset + paddle.length/2) paddle.ypos = thisScreen.offset + paddle.length/2;
             if(paddle.ypos > thisScreen.height - thisScreen.offset - paddle.length/2) paddle.ypos = thisScreen.height - thisScreen.offset - paddle.length/2;
@@ -397,4 +399,11 @@ public class GameView extends View  {
         invalidate();
         return true;
     }
+
+
+
+
 }
+
+
+

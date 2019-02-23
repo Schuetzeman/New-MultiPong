@@ -91,17 +91,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="567dp"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="243dp"
+        android:layout_marginEnd="152dp"
         android:text="join" />
 
     <Button
         android:id="@+id/server"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/join"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="567dp"
-        android:layout_marginEnd="-175dp"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="314dp"
+        android:layout_marginEnd="144dp"
         android:text="Server" />
 
 </RelativeLayout>
